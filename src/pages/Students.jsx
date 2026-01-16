@@ -40,7 +40,10 @@ import {
   MenuItem,
   Grid,
   ToggleButton,
-  ToggleButtonGroup
+  ToggleButtonGroup,
+  useMediaQuery,
+  useTheme,
+  Divider
 } from '@mui/material';
 import {
   HiPlus as AddIcon,
@@ -87,6 +90,16 @@ const Students = () => {
       membershipType: 'Monthly'
     }
   });
+
+  // State for view student details dialog (mobile)
+  const [viewDialog, setViewDialog] = useState({
+    open: false,
+    student: null
+  });
+
+  // Theme and media query for responsive design
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   // Function to calculate membership end date based on membership type
   const calculateMembershipEndDate = (startDate, membershipType) => {
@@ -315,6 +328,22 @@ const Students = () => {
       open: true,
       mode: 'edit',
       student: { ...student }
+    });
+  };
+
+  // Function to handle view student details (mobile)
+  const handleViewStudent = (student) => {
+    setViewDialog({
+      open: true,
+      student: { ...student }
+    });
+  };
+
+  // Function to close view dialog
+  const handleCloseViewDialog = () => {
+    setViewDialog({
+      open: false,
+      student: null
     });
   };
 
@@ -664,27 +693,27 @@ const Students = () => {
           <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
             <TableHead>
               <TableRow sx={{ backgroundColor: 'grey.50' }}>
-                <TableCell sx={{ width: '18%' }}>Student</TableCell>
-                <TableCell sx={{ width: '6%' }}>Age</TableCell>
-                <TableCell sx={{ width: '10%' }}>Type</TableCell>
-                <TableCell sx={{ width: '10%' }}>Status</TableCell>
-                <TableCell sx={{ width: '18%' }}>Email</TableCell>
-                <TableCell sx={{ width: '8%' }}>Plan</TableCell>
-                <TableCell sx={{ width: '10%' }}>Start</TableCell>
-                <TableCell sx={{ width: '10%' }}>End</TableCell>
-                <TableCell sx={{ width: '10%' }} align="center">Actions</TableCell>
+                <TableCell sx={{ width: isMobile ? '30%' : '18%' }}>Student</TableCell>
+                {!isMobile && <TableCell sx={{ width: '6%' }}>Age</TableCell>}
+                {!isMobile && <TableCell sx={{ width: '10%' }}>Type</TableCell>}
+                <TableCell sx={{ width: isMobile ? '20%' : '10%' }}>Status</TableCell>
+                {!isMobile && <TableCell sx={{ width: '18%' }}>Email</TableCell>}
+                {!isMobile && <TableCell sx={{ width: '8%' }}>Plan</TableCell>}
+                <TableCell sx={{ width: isMobile ? '25%' : '10%' }}>Start</TableCell>
+                <TableCell sx={{ width: isMobile ? '25%' : '10%' }}>End</TableCell>
+                <TableCell sx={{ width: isMobile ? '20%' : '10%' }} align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={isMobile ? 5 : 9} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">Loading...</Typography>
                   </TableCell>
                 </TableRow>
               ) : filteredStudents.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={isMobile ? 5 : 9} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">No students found</Typography>
                   </TableCell>
                 </TableRow>
@@ -700,15 +729,17 @@ const Students = () => {
                       </Typography>
                     </Box>
                   </TableCell>
-                  <TableCell sx={{ py: 1 }}>{student.age}</TableCell>
-                  <TableCell sx={{ py: 1 }}>
-                    <Chip 
-                      label={student.coaching} 
-                      color={getCoachingColor(student.coaching)}
-                      size="small"
-                      sx={{ height: 24, '& .MuiChip-label': { px: 1 } }}
-                    />
-                  </TableCell>
+                  {!isMobile && <TableCell sx={{ py: 1 }}>{student.age}</TableCell>}
+                  {!isMobile && (
+                    <TableCell sx={{ py: 1 }}>
+                      <Chip 
+                        label={student.coaching} 
+                        color={getCoachingColor(student.coaching)}
+                        size="small"
+                        sx={{ height: 24, '& .MuiChip-label': { px: 1 } }}
+                      />
+                    </TableCell>
+                  )}
                   <TableCell sx={{ py: 1 }}>
                     <Chip 
                       label={student.status} 
@@ -717,20 +748,24 @@ const Students = () => {
                       sx={{ height: 24, '& .MuiChip-label': { px: 1 } }}
                     />
                   </TableCell>
-                  <TableCell sx={{ ...ellipsisStyle, py: 1 }}>
-                    <Typography variant="body2" color="text.secondary" sx={ellipsisStyle} title={student.email}>
-                      {student.email}
-                    </Typography>
-                  </TableCell>
-                  <TableCell sx={{ py: 1 }}>
-                    <Chip 
-                      label={getMembershipLabel(student.membershipType)} 
-                      color="info"
-                      size="small"
-                      sx={{ height: 24, '& .MuiChip-label': { px: 1, fontSize: '0.75rem' } }}
-                      title={student.membershipType || '-'}
-                    />
-                  </TableCell>
+                  {!isMobile && (
+                    <TableCell sx={{ ...ellipsisStyle, py: 1 }}>
+                      <Typography variant="body2" color="text.secondary" sx={ellipsisStyle} title={student.email}>
+                        {student.email}
+                      </Typography>
+                    </TableCell>
+                  )}
+                  {!isMobile && (
+                    <TableCell sx={{ py: 1 }}>
+                      <Chip 
+                        label={getMembershipLabel(student.membershipType)} 
+                        color="info"
+                        size="small"
+                        sx={{ height: 24, '& .MuiChip-label': { px: 1, fontSize: '0.75rem' } }}
+                        title={student.membershipType || '-'}
+                      />
+                    </TableCell>
+                  )}
                   <TableCell sx={{ py: 1 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
                       {formatDate(student.membershipStartDate)}
@@ -743,7 +778,12 @@ const Students = () => {
                   </TableCell>
                   <TableCell align="center" sx={{ py: 1 }}>
                     <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                      <IconButton size="small" color="primary" sx={{ p: 0.5 }}>
+                      <IconButton 
+                        size="small" 
+                        color="primary" 
+                        sx={{ p: 0.5 }}
+                        onClick={() => isMobile ? handleViewStudent(student) : null}
+                      >
                         <ViewIcon size={16} />
                       </IconButton>
                       <IconButton 
@@ -825,6 +865,106 @@ const Students = () => {
           </Button>
           <Button onClick={handleDeleteConfirm} color="error" variant="contained">
             Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* View Student Details Dialog (Mobile) */}
+      <Dialog
+        open={viewDialog.open}
+        onClose={handleCloseViewDialog}
+        maxWidth="sm"
+        fullWidth
+        aria-labelledby="view-dialog-title"
+      >
+        <DialogTitle id="view-dialog-title">
+          Student Details
+        </DialogTitle>
+        <DialogContent>
+          {viewDialog.student && (
+            <Box sx={{ pt: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                <Avatar sx={{ bgcolor: 'primary.main', width: 56, height: 56, fontSize: '1.5rem' }}>
+                  {viewDialog.student.name?.charAt(0) || '?'}
+                </Avatar>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
+                    {viewDialog.student.name || '-'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {viewDialog.student.email || '-'}
+                  </Typography>
+                </Box>
+              </Box>
+              <Divider sx={{ mb: 2 }} />
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="caption" color="text.secondary">
+                    Age
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 0.5 }}>
+                    {viewDialog.student.age || '-'}
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="caption" color="text.secondary">
+                    Coaching Type
+                  </Typography>
+                  <Box sx={{ mt: 0.5 }}>
+                    <Chip 
+                      label={viewDialog.student.coaching || '-'} 
+                      color={getCoachingColor(viewDialog.student.coaching)}
+                      size="small"
+                    />
+                  </Box>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="caption" color="text.secondary">
+                    Status
+                  </Typography>
+                  <Box sx={{ mt: 0.5 }}>
+                    <Chip 
+                      label={viewDialog.student.status || '-'} 
+                      color={getStatusColor(viewDialog.student.status)}
+                      size="small"
+                    />
+                  </Box>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="caption" color="text.secondary">
+                    Membership Plan
+                  </Typography>
+                  <Box sx={{ mt: 0.5 }}>
+                    <Chip 
+                      label={viewDialog.student.membershipType || '-'} 
+                      color="info"
+                      size="small"
+                    />
+                  </Box>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="caption" color="text.secondary">
+                    Start Date
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 0.5 }}>
+                    {formatDate(viewDialog.student.membershipStartDate)}
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="caption" color="text.secondary">
+                    End Date
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 0.5 }}>
+                    {formatDate(viewDialog.student.membershipEndDate)}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseViewDialog} color="primary">
+            Close
           </Button>
         </DialogActions>
       </Dialog>
