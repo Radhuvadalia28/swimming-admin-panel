@@ -85,7 +85,6 @@ const Students = () => {
       name: '',
       age: '',
       coaching: 'Coach',
-      status: 'Active',
       email: '',
       membershipType: 'Monthly'
     }
@@ -197,18 +196,24 @@ const Students = () => {
       // Only use PAGE_SIZE documents for display
       const docsToShow = hasMore ? allDocs.slice(0, PAGE_SIZE) : allDocs;
       
-      const studentsData = docsToShow.map(doc => ({
-        id: doc.id,
-        name: doc.data().name || "",
-        age: doc.data().age || "",
-        email: doc.data().email || "",
-        coaching: doc.data().coaching || "",
-        status: doc.data().status || "Inactive",
-        membershipType: doc.data().membershipType || "Monthly",
-        membershipStartDate: doc.data().membershipStartDate || null,
-        membershipEndDate: doc.data().membershipEndDate || null,
-        createdAt: doc.data().createdAt || null,
-      }));
+      const studentsData = docsToShow.map(doc => {
+        const startDate = doc.data().membershipStartDate || null;
+        const endDate = doc.data().membershipEndDate || null;
+        const calculatedStatus = calculateStatus(startDate, endDate);
+        
+        return {
+          id: doc.id,
+          name: doc.data().name || "",
+          age: doc.data().age || "",
+          email: doc.data().email || "",
+          coaching: doc.data().coaching || "",
+          status: calculatedStatus,
+          membershipType: doc.data().membershipType || "Monthly",
+          membershipStartDate: startDate,
+          membershipEndDate: endDate,
+          createdAt: doc.data().createdAt || null,
+        };
+      });
       
       setStudents(studentsData);
 
@@ -315,7 +320,6 @@ const Students = () => {
         name: '',
         age: '',
         coaching: 'Coach',
-        status: 'Active',
         email: '',
         membershipType: 'Monthly'
       }
@@ -398,7 +402,6 @@ const Students = () => {
           name: student.name.trim(),
           age: ageNumber,
           coaching: student.coaching,
-          status: student.status,
           email: student.email.trim(),
           membershipType: student.membershipType,
           membershipStartDate: Timestamp.fromDate(membershipStartDate),
@@ -416,7 +419,6 @@ const Students = () => {
           name: student.name.trim(),
           age: ageNumber,
           coaching: student.coaching,
-          status: student.status,
           email: student.email.trim(),
           membershipType: student.membershipType,
           membershipStartDate: Timestamp.fromDate(membershipStartDate),
@@ -494,7 +496,6 @@ const Students = () => {
         name: '',
         age: '',
         coaching: 'Coach',
-        status: 'Active',
         email: '',
         membershipType: 'Monthly'
       }
@@ -511,6 +512,27 @@ const Students = () => {
       case 'Self': return 'secondary';
       default: return 'default';
     }
+  };
+
+  // Helper function to calculate status based on start and end dates
+  const calculateStatus = (startDate, endDate) => {
+    if (!startDate || !endDate) return 'Inactive';
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
+    
+    // Convert Firestore Timestamp to Date
+    const start = startDate.toDate ? startDate.toDate() : new Date(startDate);
+    const end = endDate.toDate ? endDate.toDate() : new Date(endDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999); // End of day
+    
+    // If today is between start and end date (inclusive), status is Active
+    if (today >= start && today <= end) {
+      return 'Active';
+    }
+    // If today is after end date, status is Inactive
+    return 'Inactive';
   };
 
   // Helper function to format Firestore Timestamp to DD-MM-YYYY format
@@ -1023,19 +1045,6 @@ const Students = () => {
                   >
                     <MenuItem value="Coach">Coach</MenuItem>
                     <MenuItem value="Self">Self</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    value={studentDialog.student.status}
-                    label="Status"
-                    onChange={(e) => handleInputChange('status', e.target.value)}
-                  >
-                    <MenuItem value="Active">Active</MenuItem>
-                    <MenuItem value="Inactive">Inactive</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
